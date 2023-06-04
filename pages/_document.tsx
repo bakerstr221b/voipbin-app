@@ -1,9 +1,16 @@
 import * as React from 'react';
+import { Fragment } from "react";
 import Document, { Html, Head, Main, NextScript } from 'next/document';
 import createEmotionServer from '@emotion/server/create-instance';
 import createEmotionCache from 'src/createEmotionCache';
+//https://velog.io/@juunghunz/Next.js-Typescript-Styled-Component-%EC%A0%81%EC%9A%A9
+//서버로 부터  style을 적용 받은 HTML을 가져올 수 있게 처리
+// 이 작업이 없으면  css로딩이 늦게 되어 깜박이는 현상 발생
+//HTML은 SSR로 미리 렌더링 시키지만 styled-component의 스타일들은 사용자가 접속 시 변환되기 때문
+ import { ServerStyleSheet } from "styled-components" ;
 
 export default class MyDocument extends Document {
+    
   render() {
     return (
       <Html lang="en">
@@ -48,7 +55,7 @@ MyDocument.getInitialProps = async (ctx) => {
   // 2. page.getInitialProps
   // 3. app.render
   // 4. page.render
-
+  const sheet = new ServerStyleSheet();
   const originalRenderPage = ctx.renderPage;
 
   // You can consider sharing the same emotion cache between all the SSR requests to speed up performance.
@@ -56,31 +63,39 @@ MyDocument.getInitialProps = async (ctx) => {
   const cache = createEmotionCache();
   const { extractCriticalToChunks } = createEmotionServer(cache);
 
-  ctx.renderPage = () =>
-    originalRenderPage({
-      enhanceApp: (App: any) => (props) =>
-        <App emotionCache={cache} {...props} />
-    });
+  try {
+    ctx.renderPage = () =>
+        originalRenderPage({
+        enhanceApp: (App: any) => (props) =>
+        sheet.collectStyles(<App emotionCache={cache} {...props} />),
+        });
 
-  const initialProps = await Document.getInitialProps(ctx);
-  // This is important. It prevents emotion to render invalid HTML.
-  // See https://github.com/mui-org/material-ui/issues/26561#issuecomment-855286153
-  const emotionStyles = extractCriticalToChunks(initialProps.html);
-  const emotionStyleTags = emotionStyles.styles.map((style) => (
-    <style
-      data-emotion={`${style.key} ${style.ids.join(' ')}`}
-      key={style.key}
-      // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: style.css }}
-    />
-  ));
+    const initialProps = await Document.getInitialProps(ctx);
+    // This is important. It prevents emotion to render invalid HTML.
+    // See https://github.com/mui-org/material-ui/issues/26561#issuecomment-855286153
+    const emotionStyles = extractCriticalToChunks(initialProps.html);
+    const emotionStyleTags = emotionStyles.styles.map((style) => (
+        <style
+        data-emotion={`${style.key} ${style.ids.join(' ')}`}
+        key={style.key}
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: style.css }}
+        />
+    ));
 
-  return {
-    ...initialProps,
-    // Styles fragment is rendered after the app and page rendering finish.
-    styles: [
-      ...React.Children.toArray(initialProps.styles),
-      ...emotionStyleTags
-    ]
-  };
+    return {
+        ...initialProps,
+        // Styles fragment is rendered after the app and page rendering finish.
+        styles: [
+            <Fragment key="1">
+                {initialProps.styles}
+                {sheet.getStyleElement()}
+            </Fragment>,
+        ...React.Children.toArray(initialProps.styles),
+        ...emotionStyleTags
+        ]
+    };
+    } finally {
+        sheet.seal();
+    }
 };
