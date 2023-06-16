@@ -4,7 +4,11 @@ import {
   Card,
   Container,
   Button,
-  styled
+  styled,  
+  Grid,
+  CardHeader,
+  CardContent,
+  Divider
 } from '@mui/material';
 import type { ReactElement } from 'react';
 import BaseLayout from 'src/layouts/BaseLayout';
@@ -13,7 +17,10 @@ import Link from 'src/components/Link';
 import Head from 'next/head';
 
 import Logo from 'src/components/LogoSign';
-import Hero from 'src/content/Overview/Hero';
+// import Hero from 'src/content/Overview/Hero';
+import TextField from '@mui/material/TextField';
+
+
 
 const HeaderWrapper = styled(Card)(
   ({ theme }) => `
@@ -35,16 +42,36 @@ const OverviewWrapper = styled(Box)(
 );
 
 function Overview() {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    });
+    if (response.ok) {
+      router.push('/dashboards/crypto');
+    }
+  };
+
+
+
+
+
+
   return (
     <OverviewWrapper>
       <Head>
-        <title>Tokyo Free White NextJS Typescript Admin Dashboard</title>
+        <title>Voipbin</title>
       </Head>
+
       <HeaderWrapper>
         <Container maxWidth="lg">
           <Box display="flex" alignItems="center">
             <Logo />
-            <Box
+            {/* <Box
               display="flex"
               alignItems="center"
               justifyContent="space-between"
@@ -61,12 +88,68 @@ function Overview() {
                   Live Preview
                 </Button>
               </Box>
-            </Box>
+            </Box> */}
           </Box>
         </Container>
       </HeaderWrapper>
-      <Hero />
-      <Container maxWidth="lg" sx={{ mt: 8 }}>
+
+      <Container maxWidth="lg">
+        <Grid
+          container
+          direction="row"
+          justifyContent="center"
+          alignItems="stretch"
+          spacing={3}
+        >
+          <Grid item xs={3}>
+            <Card>
+              <CardHeader title="Login" />
+              <Divider />
+              <CardContent>
+                <Box
+                  component="form"
+                  sx={{
+                    '& .MuiTextField-root': { m: 1, width: '25ch' }
+                  }}
+                  noValidate
+                  autoComplete="off"
+                >
+                  <div>
+                    <TextField
+                      required
+                      id="outlined-required"
+                      label="Required"
+                    />
+                  </div>
+                  <div>
+                  <TextField
+                      id="outlined-password-input"
+                      label="Password"
+                      type="password"
+                      autoComplete="current-password"
+                    />
+                  </div>
+                  <div>
+                  <Button
+                  component={Link}
+                  href="/dashboards/crypto"
+                  variant="contained"
+                  sx={{ width: 1}}
+                >
+                  Login
+                </Button>                    
+                  </div>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Container>
+
+
+
+      {/* <Hero /> */}
+      {/* <Container maxWidth="lg" sx={{ mt: 8 }}>
         <Typography textAlign="center" variant="subtitle1">
           Crafted by{' '}
           <Link
@@ -77,7 +160,7 @@ function Overview() {
             BloomUI.com
           </Link>
         </Typography>
-      </Container>
+      </Container> */}
     </OverviewWrapper>
   );
 }
