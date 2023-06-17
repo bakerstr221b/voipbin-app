@@ -1,26 +1,17 @@
-import {
-  Typography,
-  Box,
-  Card,
-  Container,
-  Button,
-  styled,  
-  Grid,
-  CardHeader,
-  CardContent,
-  Divider
-} from '@mui/material';
+import {Typography,  Box,  Card,  Container,  Button,  styled,    Grid,  CardHeader,  CardContent,  Divider} from '@mui/material';
 import type { ReactElement } from 'react';
 import BaseLayout from 'src/layouts/BaseLayout';
-
-import Link from 'src/components/Link';
+// import Link from 'src/components/Link';
 import Head from 'next/head';
-
 import Logo from 'src/components/LogoSign';
 // import Hero from 'src/content/Overview/Hero';
 import TextField from '@mui/material/TextField';
-
-
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import LoadingButton from '@mui/lab/LoadingButton';
+import Alert from '@mui/material/Alert';
+import Collapse from '@mui/material/Collapse';
+import IconButton from '@mui/material/IconButton';
 
 const HeaderWrapper = styled(Card)(
   ({ theme }) => `
@@ -42,24 +33,31 @@ const OverviewWrapper = styled(Box)(
 );
 
 function Overview() {
+  const [loading, setLoading] = useState(false);  
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [open, setOpen] = useState(false);
+  const router = useRouter(); 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const response = await fetch('/api/login', {
+    setOpen(false);
+    setLoading(true);
+    const response = await fetch('https://api.voipbin.net/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ username, password })
     });
+    debugger;
     if (response.ok) {
+      setLoading(false);
       router.push('/dashboards/crypto');
+    }else{
+      setOpen(true)
+      setLoading(false);
     }
   };
-
-
-
-
-
 
   return (
     <OverviewWrapper>
@@ -118,7 +116,8 @@ function Overview() {
                     <TextField
                       required
                       id="outlined-required"
-                      label="Required"
+                      label="ID"
+                      value={username} onChange={(e) => setUsername(e.target.value)}
                     />
                   </div>
                   <div>
@@ -127,18 +126,33 @@ function Overview() {
                       label="Password"
                       type="password"
                       autoComplete="current-password"
+                      value={password} onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
                   <div>
-                  <Button
+                  {/* <Button
                   component={Link}
                   href="/dashboards/crypto"
                   variant="contained"
                   sx={{ width: 1}}
+                  onClick={handleLogin}
                 >
                   Login
-                </Button>                    
+                </Button>                     */}
+                  <LoadingButton
+                    onClick={handleLogin}
+                    loading={loading}
+                    variant="outlined"
+                    sx={{ width: 1}}
+                  >
+                    <span>Login</span>
+                  </LoadingButton>                
                   </div>
+                  <Collapse in={open} sx={{ marginTop: '10px' }}> 
+                    <Alert variant="outlined" severity="error">
+                      Login Fail..
+                    </Alert>
+                  </Collapse>                  
                 </Box>
               </CardContent>
             </Card>
