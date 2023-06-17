@@ -32,7 +32,12 @@ const OverviewWrapper = styled(Box)(
 `
 );
 
+
 function Overview() {
+  // console.log('----------------CLIENT ENVIRONMENT VARIABLES TEST----------------')
+  // console.log('process.env.NODE_ENV : ', process.env.NODE_ENV)
+  // console.log('process.env.NEXT_PUBLIC_API_URL: ', process.env.NEXT_PUBLIC_API_URL)
+  const apiUrl=process.env.NEXT_PUBLIC_API_URL;
   const [loading, setLoading] = useState(false);  
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -42,7 +47,7 @@ function Overview() {
     e.preventDefault();
     setOpen(false);
     setLoading(true);
-    const response = await fetch('https://api.voipbin.net/auth/login', {
+    const response = await fetch(`${apiUrl}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
